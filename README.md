@@ -100,6 +100,10 @@ pyinstaller --onefile --windowed --icon assets/amar_bangla_keyboard_logo.ico --n
 
 MIT License - Free to use and modify.
 
+## Contact
+
+Email: support@amarbangla.in
+
 ---
 
 **Made with ❤️ for Bengali users**

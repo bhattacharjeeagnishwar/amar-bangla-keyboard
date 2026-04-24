@@ -131,5 +131,5 @@ MIT License - বিনামূল্যে ব্যবহার ও পরি
 
 ## যোগাযোগ
 
-GitHub: https://github.com/amarbangla/keyboard
+GitHub: https://github.com/bhattacharjeeagnishwar/amar-bangla-keyboard
 Email: support@amarbangla.in

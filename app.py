@@ -6,6 +6,7 @@ from pystray import Icon
 from PIL import Image, ImageDraw
 
 VERSION = "1.0.0"
+SUPPORT_EMAIL = "support@amarbangla.in"
 
 WORKING_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(WORKING_DIR, "config.json")
@@ -121,12 +122,13 @@ def _create_menu():
         Item('English মোড: ' + ('বন্ধ' if bengali_mode else 'চালু'), lambda i, n: None, enabled=False),
         Item('---', lambda i, n: None, enabled=False),
         Item('সাহায্য (F1)', lambda i, n: _show_help()),
+        Item('Email: ' + SUPPORT_EMAIL, lambda i, n: keyboard.write(SUPPORT_EMAIL)),
         Item('---', lambda i, n: None, enabled=False),
         Item('বন্ধ করুন', _quit),
     )
 
 def _show_help():
-    keyboard.write('Amar Bangla Keyboard v' + VERSION + '\nToggle: Ctrl+Space\nExit: Right-click tray\nType phonetically: bangla -> বাংলা')
+    keyboard.write('Amar Bangla Keyboard v' + VERSION + '\nToggle: Ctrl+Space\nEmail: ' + SUPPORT_EMAIL + '\nType phonetically: bangla -> বাংলা')
 
 def _convert_char(char, last_consonant):
     if char in CONSONANTS:
