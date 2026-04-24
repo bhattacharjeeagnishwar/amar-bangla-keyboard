@@ -102,7 +102,7 @@ MIT License - Free to use and modify.
 
 ## Contact
 
-Email: support@amarbangla.in
+**Email:** support@amarbangla.in
 
 ---
 
