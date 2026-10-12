@@ -14,7 +14,7 @@ Bengali Phonetic Keyboard - Type in Bengali using English letters!
 
 ### Option 1: Windows Installer (recommended)
 1. Go to [Releases](https://github.com/bhattacharjeeagnishwar/amar-bangla-keyboard/releases)
-2. Download `AmarBanglaKeyboard-Setup-1.1.0.exe`
+2. Download `AmarBanglaKeyboard-Setup-1.1.1.exe`
 3. Run it. **No admin rights needed** - it installs for the current user.
    The wizard lets you add a desktop icon and start the app with Windows.
 4. Uninstall anytime from **Settings → Apps** (or the Start Menu shortcut).
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 - Build the app: `build.bat` → `dist\Amar Bangla Keyboard.exe`
 - Build the installer (needs [Inno Setup 6](https://jrsoftware.org/isdl.php)):
-  `build_installer.bat` → `installer\AmarBanglaKeyboard-Setup-1.1.0.exe`
+  `build_installer.bat` → `installer\AmarBanglaKeyboard-Setup-1.1.1.exe`
 
 Without Inno Setup you can also use the plain batch installer:
 `install.bat` copies the app to `%LOCALAPPDATA%`, adds shortcuts and a
@@ -90,9 +90,31 @@ conjunct.
 | Key | Bengali | Description |
 |-----|---------|-------------|
 | ; | ্ | Hasant (joiner) — `k;t` → ক্ত |
+| ; | (break) | Before a vowel: keep it independent — `b;i` → বই |
 | : | ঃ | Bisarg |
 | . | । | দাঁড়ি (Bengali full stop) |
 | ` | ঋ / ৃ | Ri (start), Ri matra (after a consonant) |
+
+### Independent vowels (স্বর-বিরতি)
+After a consonant a vowel key normally becomes a matra (`ki` → কি). To keep the
+vowel **independent**, put `;` between them:
+
+| Type | Bengali | |
+|------|---------|--|
+| b;i | বই | b + ই |
+| n;i | নই | n + ই |
+| K;i | খই | K + ই |
+| d;i | দই | d + ই |
+| b;u | বউ | b + উ |
+| b;o | বও | b + ও |
+| h;o | হও | h + ও |
+| k;o | কও | k + ও |
+| b;U | বঊ | b + ঊ |
+| b;O | বঔ | b + ঔ |
+| k;t;i | ক্তই | conjunct + ই |
+
+A vowel that already follows a matra is independent, so no `;` is needed:
+`nei` → নেই, `sei` → সেই, `tui` → তুই, `dui` → দুই.
 
 ### Numbers
 | Key | Bengali |
@@ -109,6 +131,7 @@ conjunct.
 | v | ড |
 | ka | কা |
 | k;t | ক্ত |
+| b;i | বই |
 | k: | কঃ |
 | 1234 | ১২৩৪ |
 

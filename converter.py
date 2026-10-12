@@ -10,6 +10,8 @@ Simple case-sensitive letter mapping (the original "chhoto-hather" scheme):
   - vowels are context sensitive: word-initial form vs the matra used after
     a consonant (a=অ/া, i=ই/ি, u=উ/ু, e=এ/ে, o=ও/ো, ...)
   - ';' joins two letters:  k;t -> ক্ত
+  - ';' before a vowel is a break, giving the independent vowel:
+      b;i -> ব + ই = বই  (so বই, নই, ... can be typed)
   - ':' -> ঃ (bisarga),  '.' -> । (দাঁড়ি),  '`' -> ঋ / ৃ (ri)
 
 The engine is purely a key mapping: there is no stored word list or dictionary,
@@ -69,7 +71,22 @@ def convert_word(text):
 
     out = []
     prev_consonant = False
+    pending_virama = False
     for ch in text:
+        # A ';' immediately followed by a vowel is a *break*, not a hasant:
+        # the vowel keeps its independent form so words like বই / নই work
+        # (b;i -> বই).  Before a consonant ';' is still the conjunct hasant.
+        if pending_virama and ch in VOWELS:
+            indep, _matra = VOWELS[ch]
+            out.append(indep)
+            prev_consonant = False
+            pending_virama = False
+            continue
+
+        if pending_virama:
+            out.append(_VIRAMA)
+            pending_virama = False
+
         if ch in CONSONANTS:
             out.append(CONSONANTS[ch])
             prev_consonant = ch not in _NON_JOINING
@@ -78,7 +95,7 @@ def convert_word(text):
             out.append(matra if prev_consonant else indep)
             prev_consonant = False
         elif ch == ';':
-            out.append(_VIRAMA)
+            pending_virama = True
             prev_consonant = False
         elif ch == ':':
             out.append('ঃ')
@@ -95,6 +112,9 @@ def convert_word(text):
         else:
             out.append(ch)
             prev_consonant = False
+
+    if pending_virama:
+        out.append(_VIRAMA)
 
     return ''.join(out)
 

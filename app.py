@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from converter import convert_word
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 SUPPORT_EMAIL = "support@amarbangla.in"
 
 MUTEX_NAME = 'AmarBanglaKeyboard_SingleInstance'

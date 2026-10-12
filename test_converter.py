@@ -73,6 +73,21 @@ CASES = {
     # --- hasanta / bisarga / ri ------------------------------------------
     'k;': 'ক্',
     'k;t': 'ক্ত',
+    # ';' before a vowel is a break -> independent vowel (বই, নই, ...)
+    'b;i': 'বই',
+    'n;i': 'নই',
+    'b;I': 'বঈ',
+    'boi': 'বোই',
+    # ... same rule for the ও / উ family
+    'b;u': 'বউ',
+    'b;o': 'বও',
+    'b;w': 'বও',
+    'h;o': 'হও',
+    'k;o': 'কও',
+    'b;U': 'বঊ',
+    'b;O': 'বঔ',
+    'keu': 'কেউ',
+    'Kao': 'খাও',
     'k:': 'কঃ',
     ':': 'ঃ',
     '.': '।',
@@ -105,11 +120,28 @@ def main():
         mark = 'ok  ' if ok else 'FAIL'
         print(f'[{mark}] {roman!r:10} -> {got!r}   expected {expected!r}')
 
+    # --- every consonant + ';' + every vowel -> independent vowel ---------
+    # Guarantees "all spellings of this kind are writable": ব্+ই -> বই,
+    # ন্+ই -> নই, খ্+ই -> খই, and every other consonant/vowel pair too.
+    from converter import CONSONANTS, VOWELS
+    combo_total = 0
+    for ckey, cval in CONSONANTS.items():
+        for vkey, (indep, _matra) in VOWELS.items():
+            roman = ckey + ';' + vkey
+            got = convert_word(roman)
+            expected = cval + indep
+            combo_total += 1
+            if got != expected:
+                failures += 1
+                print(f'[FAIL] {roman!r:8} -> {got!r}   expected {expected!r}')
+    print(f'[ok  ] all {combo_total} consonant + ";" + vowel pairs '
+          f'-> independent vowel')
+
     print()
     if failures:
         print(f'{failures} test(s) failed.')
         raise SystemExit(1)
-    print(f'All {len(CASES)} tests passed.')
+    print(f'All {len(CASES)} named + {combo_total} combination tests passed.')
 
 
 if __name__ == '__main__':
