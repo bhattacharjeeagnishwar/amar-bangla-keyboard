@@ -83,6 +83,7 @@ conjunct.
 |-----|---------|-------------|
 | ; | ্ | Hasant (joiner) — `k;t` → ক্ত |
 | : | ঃ | Bisarg |
+| . | । | দাঁড়ি (Bengali full stop) |
 | ` | ঋ / ৃ | Ri (start), Ri matra (after a consonant) |
 
 ### Numbers

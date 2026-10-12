@@ -10,7 +10,7 @@ Simple case-sensitive letter mapping (the original "chhoto-hather" scheme):
   - vowels are context sensitive: word-initial form vs the matra used after
     a consonant (a=অ/া, i=ই/ি, u=উ/ু, e=এ/ে, o=ও/ো, ...)
   - ';' joins two letters:  k;t -> ক্ত
-  - ':' -> ঃ (bisarga),  '`' -> ঋ / ৃ (ri)
+  - ':' -> ঃ (bisarga),  '.' -> । (দাঁড়ি),  '`' -> ঋ / ৃ (ri)
 
 The engine is purely a key mapping: there is no stored word list or dictionary,
 and consecutive consonants are NOT joined automatically (use ';' for that).
@@ -82,6 +82,9 @@ def convert_word(text):
             prev_consonant = False
         elif ch == ':':
             out.append('ঃ')
+            prev_consonant = False
+        elif ch == '.':
+            out.append('।')          # দাঁড়ি (Bengali full stop)
             prev_consonant = False
         elif ch == '`':
             out.append('ৃ' if prev_consonant else 'ঋ')

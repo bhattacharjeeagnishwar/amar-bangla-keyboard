@@ -49,7 +49,7 @@ TOKEN_CHARS = set(
     "abcdefghijklmnopqrstuvwxyz"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "0123456789"
-    ";:`"
+    ";:`."
 )
 
 # Keys that must never commit/reset the current token on their own.
