@@ -9,22 +9,34 @@
 
 ### পদ্ধতি ১: Setup Installer (সর্বোত্তম)
 
-1. `installer` ফোল্ডারে যান
-2. `AmarBanglaKeyboard-Setup-1.0.0.exe` চালান
-3. নির্দেশ অনুসরণ করুন
+1. `AmarBanglaKeyboard-Setup-1.0.0.exe` ডাউনলোড করুন (Releases অথবা `installer` ফোল্ডার)
+2. চালান — admin লাগে না, শুধু আপনার ইউজারের জন্য ইনস্টল হয়
+3. উইজার্ডে ডেস্কটপ আইকন ও "Windows চালু হলে অটো-স্টার্ট" বেছে নিতে পারবেন
+4. `Settings → Apps` থেকে যেকোনো সময় আনইনস্টল করুন
 
-### পদ্ধতি ২: Portable (পোর্টেবল)
+### পদ্ধতি ২: Batch Installer (Inno Setup ছাড়াই)
+
+1. `install.bat` চালান (ডিফল্ট: `%LOCALAPPDATA%\Amar Bangla Keyboard`)
+2. `install.bat /autostart` দিলে Windows-এর সাথে চালু হবে
+3. আনইনস্টল: `uninstall.bat` অথবা Settings → Apps
+
+### পদ্ধতি ৩: Portable (পোর্টেবল)
 
 1. `dist\Amar Bangla Keyboard.exe` ডাউনলোড করুন
 2. যেকোনো ফোল্ডারে রাখুন
 3. চালান
 
-### পদ্ধতি ৩: Python থেকে চালানো
+### পদ্ধতি ৪: Python থেকে চালানো
 
 ```bash
 pip install -r requirements.txt
 python app.py
 ```
+
+### সোর্স থেকে বিল্ড
+
+- অ্যাপ: `build.bat` → `dist\Amar Bangla Keyboard.exe`
+- ইনস্টলার (Inno Setup 6 লাগবে): `build_installer.bat` → `installer\AmarBanglaKeyboard-Setup-1.0.0.exe`
 
 ---
 
