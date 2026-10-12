@@ -10,7 +10,7 @@
 #define MyAppMutex "AmarBanglaKeyboard_SingleInstance"
 
 [Setup]
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppId={{EA0A66D1-5858-4CD1-9421-CD22935C5664}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}

@@ -9,9 +9,9 @@ echo.
 
 REM --- 1. Make sure the app exe exists -------------------------
 if not exist "%HERE%dist\Amar Bangla Keyboard.exe" (
-    echo [ERROR] App exe paoa gelo na:
+    echo [ERROR] App exe not found:
     echo         "%HERE%dist\Amar Bangla Keyboard.exe"
-    echo         Prothome build.bat chaliye exe build korun.
+    echo         Run build.bat first to build the exe.
     echo.
     pause
     exit /b 1
@@ -28,9 +28,9 @@ for %%P in (
 if not defined ISCC for /f "delims=" %%I in ('where ISCC.exe 2^>nul') do set "ISCC=%%I"
 
 if not defined ISCC (
-    echo [ERROR] Inno Setup 6 paoa gelo na.
+    echo [ERROR] Inno Setup 6 not found.
     echo.
-    echo         Install korun:
+    echo         Install it with:
     echo           winget install -e --id JRSoftware.InnoSetup
     echo         Or: https://jrsoftware.org/isdl.php
     echo.
@@ -45,13 +45,13 @@ echo.
 "%ISCC%" "%HERE%installer.iss"
 if errorlevel 1 (
     echo.
-    echo [ERROR] Compile fail korlo.
+    echo [ERROR] Compile failed.
     pause
     exit /b 1
 )
 
 echo.
-echo Setup file toiri hoye geche:
+echo Setup file created:
 echo   "%HERE%installer\AmarBanglaKeyboard-Setup-1.1.1.exe"
 echo.
 pause

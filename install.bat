@@ -45,10 +45,10 @@ echo ========================================
 echo.
 
 if not exist "%SRC_EXE%" (
-    echo [ERROR] Build paoa gelo na:
+    echo [ERROR] Build not found:
     echo         "%SRC_EXE%"
     echo.
-    echo         Prothome "build.bat" chaliye exe build korun, tarpor ei setup chalan.
+    echo         Run "build.bat" first to build the exe, then run this setup.
     echo.
     if "%QUIET%"=="0" pause
     exit /b 1
@@ -56,42 +56,42 @@ if not exist "%SRC_EXE%" (
 
 if exist "%INSTALL_DIR%\%APPEXE%" (
     if "%QUIET%"=="0" (
-        choice /C YN /M "Existing installation paoa geche - abar install (overwrite) korben"
+        choice /C YN /M "Existing installation found - install again (overwrite)?"
         if errorlevel 2 goto :eof
     )
 )
 
-echo [1/5] Cholti instance bondho kora hocche (jodi thake)...
+echo [1/5] Stopping any running instance...
 taskkill /IM "%APPEXE%" /F >nul 2>&1
 
-echo [2/5] File copy kora hocche: "%INSTALL_DIR%"
+echo [2/5] Copying files to: "%INSTALL_DIR%"
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 copy /Y "%SRC_EXE%" "%INSTALL_DIR%\%APPEXE%" >nul
 if exist "%SRC_ICO%" copy /Y "%SRC_ICO%" "%INSTALL_DIR%\" >nul
 if exist "%HERE%uninstall.bat" copy /Y "%HERE%uninstall.bat" "%INSTALL_DIR%\uninstall.bat" >nul
 
 if not exist "%INSTALL_DIR%\%APPEXE%" (
-    echo [ERROR] Copy fail koreche. App cholle bondho kore abar chesta korun.
+    echo [ERROR] Copy failed. Close the app and try again.
     echo.
     if "%QUIET%"=="0" pause
     exit /b 1
 )
 
-echo [3/5] Shortcut toiri kora hocche (Desktop + Start Menu)...
+echo [3/5] Creating shortcuts (Desktop + Start Menu)...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws=New-Object -ComObject WScript.Shell; $s=$ws.CreateShortcut('%DESKTOP%\%APPNAME%.lnk'); $s.TargetPath='%INSTALL_DIR%\%APPEXE%'; $s.WorkingDirectory='%INSTALL_DIR%'; $s.IconLocation='%INSTALL_DIR%\%APPEXE%,0'; $s.Description='%APPNAME%'; $s.Save()" >nul 2>&1
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws=New-Object -ComObject WScript.Shell; $s=$ws.CreateShortcut('%STARTMENU%\%APPNAME%.lnk'); $s.TargetPath='%INSTALL_DIR%\%APPEXE%'; $s.WorkingDirectory='%INSTALL_DIR%'; $s.IconLocation='%INSTALL_DIR%\%APPEXE%,0'; $s.Description='%APPNAME%'; $s.Save()" >nul 2>&1
 
-echo [4/5] Windows-er shathe auto-start set kora hocche...
+echo [4/5] Setting up auto-start with Windows...
 if "%AUTOSTART%"=="" (
     if "%QUIET%"=="0" (
-        choice /C YN /M "Windows shuru hole %APPNAME% nije theke chalu hobe"
+        choice /C YN /M "Start %APPNAME% automatically when Windows starts"
         if errorlevel 2 (set "AUTOSTART=0") else (set "AUTOSTART=1")
     )
 )
 if "%AUTOSTART%"=="1" reg add "%RUN_KEY%" /v AmarBanglaKeyboard /t REG_SZ /d "\"%INSTALL_DIR%\%APPEXE%\"" /f >nul
 if "%AUTOSTART%"=="0" reg delete "%RUN_KEY%" /v AmarBanglaKeyboard /f >nul 2>&1
 
-echo [5/5] Windows Uninstall (Add/Remove Programs)-e register kora hocche...
+echo [5/5] Registering with Windows Uninstall (Add/Remove Programs)...
 reg add "%UNINSTALL_KEY%" /v DisplayName /t REG_SZ /d "%APPNAME%" /f >nul
 reg add "%UNINSTALL_KEY%" /v DisplayVersion /t REG_SZ /d "%APPVERSION%" /f >nul
 reg add "%UNINSTALL_KEY%" /v Publisher /t REG_SZ /d "Amar Bangla" /f >nul
@@ -122,7 +122,7 @@ echo.
 if "%NOLAUNCH%"=="1" goto :done
 if "%QUIET%"=="1" goto :done
 
-choice /C YN /M "Ekhon %APPNAME% chalu korben"
+choice /C YN /M "Start %APPNAME% now"
 if errorlevel 2 goto :done
 start "" "%INSTALL_DIR%\%APPEXE%"
 

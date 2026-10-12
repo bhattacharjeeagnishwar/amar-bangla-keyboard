@@ -1,23 +1,20 @@
 """Bengali conversion engine for Amar Bangla Keyboard.
 
-Simple case-sensitive letter mapping (the original "chhoto-hather" scheme):
-  - every key maps to one Bengali letter; upper case is a different letter
-      k=ক   K=খ      g=গ   G=ঘ      c=চ   C=ছ      j=জ   J=ঝ
-      t=ত   T=থ      d=দ   D=ধ      n=ন   N=ণ      p=প   P=ফ
-      b=ব   B=ভ      m=ম   M=ং      r=র   R=ড়      l=ল   L=ঢ়
-      s=স   S=শ      h=হ   H=ষ      y=য   Y=য়      f=ট   F=ঠ
-      v=ড   V=ঢ      q=ঙ   Q=ঞ      x=ক্ষ  X=জ্ঞ     z=ৎ   Z=ঁ
-  - vowels are context sensitive: word-initial form vs the matra used after
-    a consonant (a=অ/া, i=ই/ি, u=উ/ু, e=এ/ে, o=ও/ো, ...)
-  - ';' joins two letters:  k;t -> ক্ত
-  - ';' before a vowel is a break, giving the independent vowel:
-      b;i -> ব + ই = বই  (so বই, নই, ... can be typed)
-  - ':' -> ঃ (bisarga),  '.' -> । (দাঁড়ি),  '`' -> ঋ / ৃ (ri)
+Case-sensitive key mapping: each key gives one Bengali letter, and upper case
+is a different letter:
+    k=ক   K=খ      g=গ   G=ঘ      c=চ   C=ছ      j=জ   J=ঝ
+    t=ত   T=থ      d=দ   D=ধ      n=ন   N=ণ      p=প   P=ফ
+    b=ব   B=ভ      m=ম   M=ং      r=র   R=ড়      l=ল   L=ঢ়
+    s=স   S=শ      h=হ   H=ষ      y=য   Y=য়      f=ট   F=ঠ
+    v=ড   V=ঢ      q=ঙ   Q=ঞ      x=ক্ষ  X=জ্ঞ     z=ৎ   Z=ঁ
 
-The engine is purely a key mapping: there is no stored word list or dictionary,
-and consecutive consonants are NOT joined automatically (use ';' for that).
+Vowels are context sensitive: the word-initial form vs the matra used after a
+consonant (a=অ/া, i=ই/ি, u=উ/ু, e=এ/ে, o=ও/ো, ...).  ';' joins two letters
+(k;t -> ক্ত); before a vowel it keeps the vowel independent (b;i -> বই).
+':' -> ঃ (bisarga),  '.' -> । (danda),  '`' -> ঋ / ৃ (ri).
 
-This module has no OS / GUI dependency so it can be unit-tested anywhere.
+There is no word list or dictionary: consecutive consonants are not joined
+automatically.  No OS/GUI dependency, so it can be unit-tested anywhere.
 """
 
 # --- Key tables -----------------------------------------------------------
@@ -73,9 +70,8 @@ def convert_word(text):
     prev_consonant = False
     pending_virama = False
     for ch in text:
-        # A ';' immediately followed by a vowel is a *break*, not a hasant:
-        # the vowel keeps its independent form so words like বই / নই work
-        # (b;i -> বই).  Before a consonant ';' is still the conjunct hasant.
+        # ';' before a vowel is a break (b;i -> বই); before a consonant
+        # it stays the conjunct hasant (k;t -> ক্ত).
         if pending_virama and ch in VOWELS:
             indep, _matra = VOWELS[ch]
             out.append(indep)
