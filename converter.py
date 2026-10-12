@@ -69,7 +69,7 @@ def convert_word(text):
     out = []
     prev_consonant = False
     pending_virama = False
-    for ch in text:
+    for i, ch in enumerate(text):
         # ';' before a vowel is a break (b;i -> বই); before a consonant
         # it stays the conjunct hasant (k;t -> ক্ত).
         if pending_virama and ch in VOWELS:
@@ -94,10 +94,20 @@ def convert_word(text):
             pending_virama = True
             prev_consonant = False
         elif ch == ':':
-            out.append('ঃ')
+            # ':' between two digits is a time separator (12:30);
+            # otherwise it is a bisarga (k: -> কঃ).
+            if 0 < i < len(text) - 1 and text[i-1].isdigit() and text[i+1].isdigit():
+                out.append(':')
+            else:
+                out.append('ঃ')
             prev_consonant = False
         elif ch == '.':
-            out.append('।')          # দাঁড়ি (Bengali full stop)
+            # '.' between two digits is a decimal point (3.14);
+            # otherwise it is a danda (kalo. -> কালো।).
+            if 0 < i < len(text) - 1 and text[i-1].isdigit() and text[i+1].isdigit():
+                out.append('.')
+            else:
+                out.append('।')
             prev_consonant = False
         elif ch == '`':
             out.append('ৃ' if prev_consonant else 'ঋ')

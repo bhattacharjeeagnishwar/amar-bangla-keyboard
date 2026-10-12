@@ -91,8 +91,8 @@ conjunct.
 |-----|---------|-------------|
 | ; | ্ | Hasant (joiner) — `k;t` → ক্ত |
 | ; | (break) | Before a vowel: keep it independent — `b;i` → বই |
-| : | ঃ | Bisarg |
-| . | । | দাঁড়ি (Bengali full stop) |
+| : | ঃ | Bisarg (between digits: time separator — `12:30` → ১২:৩০) |
+| . | । | দাঁড়ি (Bengali full stop; between digits: decimal point — `3.14` → ৩.১৪) |
 | ` | ঋ / ৃ | Ri (start), Ri matra (after a consonant) |
 
 ### Independent vowels (স্বর-বিরতি)
