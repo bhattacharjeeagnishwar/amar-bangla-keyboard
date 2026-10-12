@@ -13,7 +13,7 @@ REM ============================================================
 
 set "HERE=%~dp0"
 set "APPNAME=Amar Bangla Keyboard"
-set "APPVERSION=1.0.0"
+set "APPVERSION=1.1.0"
 set "APPEXE=%APPNAME%.exe"
 set "INSTALL_DIR=%LOCALAPPDATA%\%APPNAME%"
 set "SRC_EXE=%HERE%dist\%APPEXE%"

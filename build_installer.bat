@@ -52,7 +52,7 @@ if errorlevel 1 (
 
 echo.
 echo Setup file toiri hoye geche:
-echo   "%HERE%installer\AmarBanglaKeyboard-Setup-1.0.0.exe"
+echo   "%HERE%installer\AmarBanglaKeyboard-Setup-1.1.0.exe"
 echo.
 pause
 endlocal

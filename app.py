@@ -20,10 +20,13 @@ from PIL import Image, ImageDraw, ImageFont
 
 from converter import convert_word
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 SUPPORT_EMAIL = "support@amarbangla.in"
 
 MUTEX_NAME = 'AmarBanglaKeyboard_SingleInstance'
+
+# Keep the mutex handle alive for the whole process lifetime.
+_mutex_handle = None
 
 
 def _config_dir():
@@ -234,6 +237,8 @@ def _on_key_event(event):
         return
 
     name = event.name
+    if not name:
+        return  # exotic key with no name; never crash the hook
 
     if name in _MODIFIER_NAMES:
         return
@@ -272,9 +277,10 @@ def _acquire_single_instance():
 
     Two copies would each install a global hook and double-convert every word.
     """
+    global _mutex_handle
     try:
         kernel32 = ctypes.windll.kernel32
-        kernel32.CreateMutexW(None, False, MUTEX_NAME)
+        _mutex_handle = kernel32.CreateMutexW(None, False, MUTEX_NAME)
         ERROR_ALREADY_EXISTS = 183
         return kernel32.GetLastError() != ERROR_ALREADY_EXISTS
     except Exception:
@@ -285,7 +291,13 @@ def main():
     global _tray_icon
 
     if not _acquire_single_instance():
-        _show_help()
+        # Windowed build has no console, so tell the user with a message box.
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            'Amar Bangla Keyboard is already running.\n'
+            'Look for the icon in the system tray.',
+            'Amar Bangla Keyboard',
+            0x40)  # MB_ICONINFORMATION
         return
 
     _load_config()

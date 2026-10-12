@@ -14,7 +14,7 @@ Bengali Phonetic Keyboard - Type in Bengali using English letters!
 
 ### Option 1: Windows Installer (recommended)
 1. Go to [Releases](https://github.com/bhattacharjeeagnishwar/amar-bangla-keyboard/releases)
-2. Download `AmarBanglaKeyboard-Setup-1.0.0.exe`
+2. Download `AmarBanglaKeyboard-Setup-1.1.0.exe`
 3. Run it. **No admin rights needed** - it installs for the current user.
    The wizard lets you add a desktop icon and start the app with Windows.
 4. Uninstall anytime from **Settings → Apps** (or the Start Menu shortcut).
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 - Build the app: `build.bat` → `dist\Amar Bangla Keyboard.exe`
 - Build the installer (needs [Inno Setup 6](https://jrsoftware.org/isdl.php)):
-  `build_installer.bat` → `installer\AmarBanglaKeyboard-Setup-1.0.0.exe`
+  `build_installer.bat` → `installer\AmarBanglaKeyboard-Setup-1.1.0.exe`
 
 Without Inno Setup you can also use the plain batch installer:
 `install.bat` copies the app to `%LOCALAPPDATA%`, adds shortcuts and a

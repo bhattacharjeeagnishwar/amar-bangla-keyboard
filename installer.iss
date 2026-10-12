@@ -3,7 +3,7 @@
 ; Output: installer\AmarBanglaKeyboard-Setup-<version>.exe
 
 #define MyAppName "Amar Bangla Keyboard"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Amar Bangla"
 #define MyAppURL "https://amarbangla.in"
 #define MyAppExeName "Amar Bangla Keyboard.exe"
