@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['E:\\BengaliPy\\Bengali keyboard\\app.py'],
+    ['app.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -10,7 +10,8 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['numpy', 'scipy', 'pandas', 'matplotlib', 'tkinter',
+              'PyQt5', 'PyQt6', 'PySide2', 'PySide6', 'wx'],
     noarchive=False,
     optimize=0,
 )
@@ -35,5 +36,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['E:\\BengaliPy\\Bengali keyboard\\assets\\amar_bangla_keyboard_logo.ico'],
+    icon=['assets/amar_bangla_keyboard_logo.ico'],
 )

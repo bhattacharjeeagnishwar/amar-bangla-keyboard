@@ -6,7 +6,7 @@ echo   Amar Bangla Keyboard - Installer
 echo ========================================
 echo.
 
-set "INSTALL_DIR=%PROGRAMFILES%\Amar Bangla Keyboard"
+set "INSTALL_DIR=%LOCALAPPDATA%\Amar Bangla Keyboard"
 
 if exist "%INSTALL_DIR%" (
     echo Existing installation found.
@@ -45,6 +45,7 @@ echo   Exit: Right-click tray icon ^> Quit
 echo.
 
 choice /C YN /M "Do you want to launch now?"
-if errorlevel 1 start "" "%INSTALL_DIR%\Amar Bangla Keyboard.exe"
+if errorlevel 2 goto :end
+start "" "%INSTALL_DIR%\Amar Bangla Keyboard.exe"
 
 :end

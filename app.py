@@ -1,74 +1,74 @@
-import keyboard
+"""Amar Bangla Keyboard - system tray phonetic Bengali keyboard (Windows).
+
+Type romanised Bengali in any application.  Keystrokes are captured with a
+global low-level hook, accumulated into a word, converted as a whole and
+re-rendered on screen so word hints and context-sensitive vowels work.
+
+Toggle Bengali/English with Ctrl+Space.
+"""
+
 import os
+import sys
 import json
+import ctypes
+import threading
+
+import keyboard
 from pystray import MenuItem as Item
 from pystray import Icon
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
+
+from converter import convert_word
 
 VERSION = "1.0.0"
 SUPPORT_EMAIL = "support@amarbangla.in"
 
-WORKING_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(WORKING_DIR, "config.json")
+MUTEX_NAME = 'AmarBanglaKeyboard_SingleInstance'
+
+
+def _config_dir():
+    """Where config.json lives.
+
+    In a PyInstaller one-file build ``__file__`` points inside the temporary
+    _MEIxxxx folder, so the old code wrote config.json into a directory that is
+    deleted on exit.  Use %APPDATA% instead.
+    """
+    base = os.environ.get('APPDATA') or os.path.expanduser('~')
+    path = os.path.join(base, 'Amar Bangla Keyboard')
+    try:
+        os.makedirs(path, exist_ok=True)
+    except Exception:
+        path = os.path.dirname(os.path.abspath(__file__))
+    return path
+
+
+CONFIG_FILE = os.path.join(_config_dir(), 'config.json')
+
+# Characters that become part of the current Bengali token.
+TOKEN_CHARS = set(
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "0123456789"
+    ";:`"
+)
+
+# Keys that must never commit/reset the current token on their own.
+_MODIFIER_NAMES = {
+    'shift', 'left shift', 'right shift',
+    'ctrl', 'left ctrl', 'right ctrl',
+    'alt', 'left alt', 'right alt', 'alt gr',
+    'windows', 'left windows', 'right windows',
+    'caps lock', 'num lock', 'scroll lock', 'menu', 'insert',
+}
 
 bengali_mode = False
-_last_consonant = False
 
-CONSONANTS = {
-    'k': 'ক', 'K': 'খ',
-    'g': 'গ', 'G': 'ঘ',
-    'c': 'চ', 'C': 'ছ',
-    'j': 'জ', 'J': 'ঝ',
-    't': 'ত', 'T': 'থ',
-    'd': 'দ', 'D': 'ধ',
-    'n': 'ন', 'N': 'ণ',
-    'p': 'প', 'P': 'ফ',
-    'b': 'ব', 'B': 'ভ',
-    'm': 'ম', 'M': 'ং',
-    'r': 'র', 'R': 'ড়',
-    'l': 'ল', 'L': 'ঢ়',
-    's': 'স', 'S': 'শ',
-    'h': 'হ', 'H': 'ষ',
-    'y': 'য', 'Y': 'য়',
-    'f': 'ট', 'F': 'ঠ',
-    'v': 'ড', 'V': 'ঢ',
-    'q': 'ঙ', 'Q': 'ঞ',
-    'x': 'ক্ষ', 'X': 'জ্ঞ',
-    'z': 'ৎ', 'Z': 'ঁ',
-    'w': 'ও', 'W': 'ঔ',
-}
+# State of the word currently being typed.
+_buffer = []          # raw ascii characters of the current token
+_rendered_len = 0     # number of characters currently on screen for the token
+_injecting = False    # True while we are synthesising events ourselves
+_lock = threading.RLock()
 
-VOWELS = {
-    'a': ('অ', 'া'), 'A': ('আ', 'া'),
-    'i': ('ই', 'ি'), 'I': ('ঈ', 'ী'),
-    'u': ('উ', 'ু'), 'U': ('ঊ', 'ূ'),
-    'e': ('এ', 'ে'), 'E': ('ঐ', 'ৈ'),
-    'o': ('ও', 'ো'), 'O': ('ঔ', 'ৌ'),
-}
-
-SPECIAL = {
-    ';': '্', ':': 'ঃ',
-    '`': ('ঋ', 'ৃ'),
-}
-
-COMMON_WORDS = {
-    'ami': 'আমি', 'tumi': 'তুমি', 'she': 'সে',
-    'bangla': 'বাংলা', 'bash': 'বাংলা', ' desh': 'দেশ',
-    'bharot': 'ভারত', 'bangladesh': 'বাংলাদেশ',
-    'k': 'ক', 'kh': 'খ', 'g': 'গ', 'gh': 'ঘ',
-    'c': 'চ', 'ch': 'ছ', 'j': 'জ', 'jh': 'ঝ',
-    't': 'ত', 'th': 'থ', 'd': 'দ', 'dh': 'ধ',
-    'n': 'ন', 'p': 'প', 'ph': 'ফ', 'b': 'ব', 'bh': 'ভ',
-    'm': 'ম', 'r': 'র', 'l': 'ল', 's': 'স', 'sh': 'শ',
-    'h': 'হ', 'y': 'য', 'n': 'ণ',
-    'bidyaloy': 'বিদ্যালয়', 'shikkhito': 'শিক্ষিত',
-    'chetona': 'চেতনা', 'muktir': 'মুক্তির',
-    'shadhinota': 'স্বাধীনতা', 'desh': 'দেশ',
-}
-
-_digits = str.maketrans('0123456789', '০১২৩৪৫৬৭৮৯')
-
-_buffer = []
 _tray_icon = None
 
 _config = {
@@ -76,144 +76,242 @@ _config = {
     'auto_start': False,
 }
 
+
+# --- Config ---------------------------------------------------------------
+
 def _load_config():
     global _config
     try:
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                 _config.update(json.load(f))
-    except:
+    except Exception:
         pass
+
 
 def _save_config():
     try:
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             json.dump(_config, f, ensure_ascii=False, indent=2)
-    except:
+    except Exception:
         pass
 
-def _create_image(label, bg_color):
+
+# --- Tray icon ------------------------------------------------------------
+
+def _load_bengali_font(size):
+    """Return a font that can render Bengali, or None.
+
+    PIL's built-in bitmap font cannot draw Bengali glyphs, which made the
+    original tray icon show boxes instead of 'বা'.
+    """
+    for name in ('Nirmala.ttf', 'NirmalaUI.ttf', 'Vrinda.ttf', 'Shonar.ttf'):
+        try:
+            return ImageFont.truetype(name, size)
+        except Exception:
+            continue
+    return None
+
+
+def _create_image(label, fallback, bg_color):
     img = Image.new('RGB', (64, 64), color=(40, 40, 40))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle([4, 4, 59, 59], radius=8, fill=bg_color, outline='white', width=2)
-    d.text((32, 32), label, fill='white', anchor='mm')
+    d.rounded_rectangle([4, 4, 59, 59], radius=8, fill=bg_color,
+                        outline='white', width=2)
+    font = _load_bengali_font(34)
+    try:
+        if font is not None:
+            d.text((32, 32), label, fill='white', anchor='mm', font=font)
+        else:
+            d.text((32, 32), fallback, fill='white', anchor='mm')
+    except Exception:
+        d.text((32, 32), fallback, fill='white', anchor='mm')
     return img
 
-def _toggle_mode(icon, item):
-    global bengali_mode
-    bengali_mode = not bengali_mode
-    _update_tray_icon()
 
-def _update_tray_icon():
-    global _tray_icon
-    if _tray_icon:
-        label = 'বা' if bengali_mode else 'EN'
-        color = (0, 120, 215) if bengali_mode else (128, 128, 128)
-        _tray_icon.icon = _create_image(label, color)
-        _tray_icon.menu = _create_menu()
+def _tray_image():
+    if bengali_mode:
+        return _create_image('বা', 'B', (0, 120, 215))
+    return _create_image('EN', 'EN', (128, 128, 128))
 
-def _quit(icon, item):
-    _save_config()
-    icon.stop()
 
 def _create_menu():
     return (
-        Item('বাংলা মোড: ' + ('চালু' if bengali_mode else 'বন্ধ'), lambda i, n: None, enabled=False),
-        Item('English মোড: ' + ('বন্ধ' if bengali_mode else 'চালু'), lambda i, n: None, enabled=False),
+        Item('বাংলা মোড: ' + ('চালু' if bengali_mode else 'বন্ধ'),
+             lambda i, n: None, enabled=False),
+        Item('English মোড: ' + ('বন্ধ' if bengali_mode else 'চালু'),
+             lambda i, n: None, enabled=False),
         Item('---', lambda i, n: None, enabled=False),
-        Item('সাহায্য (F1)', lambda i, n: _show_help()),
+        Item('সাহায্য (F1)', _show_help),
         Item('Email: ' + SUPPORT_EMAIL, lambda i, n: keyboard.write(SUPPORT_EMAIL)),
         Item('---', lambda i, n: None, enabled=False),
         Item('বন্ধ করুন', _quit),
     )
 
-def _show_help():
-    keyboard.write('Amar Bangla Keyboard v' + VERSION + '\nToggle: Ctrl+Space\nEmail: ' + SUPPORT_EMAIL + '\nType phonetically: bangla -> বাংলা')
 
-def _convert_char(char, last_consonant):
-    if char in CONSONANTS:
-        return CONSONANTS[char], True
-    elif char in VOWELS:
-        start, matra = VOWELS[char]
-        if last_consonant:
-            return matra, False
-        else:
-            return start, False
-    elif char in SPECIAL:
-        val = SPECIAL[char]
-        if isinstance(val, tuple):
-            if last_consonant:
-                return val[1], False
-            else:
-                return val[0], False
-        else:
-            return val, False
-    elif char.isdigit():
-        return char.translate(_digits), False
-    else:
-        return char, False
+def _update_tray_icon():
+    if _tray_icon is not None:
+        _tray_icon.icon = _tray_image()
+        _tray_icon.menu = _create_menu()
 
-def _convert_to_bengali(text):
-    global _last_consonant
-    result = ""
-    for char in text:
-        converted, _last_consonant = _convert_char(char, _last_consonant)
-        result += converted
-    return result
 
-def _on_key_event(event):
-    global bengali_mode, _buffer, _tray_icon
-    
-    if event.event_type != 'down' or not bengali_mode:
-        return
-    
-    key = event.name
-    
-    if len(key) == 1 and key.isascii() and key.isprintable():
-        _buffer.append(key)
-        buffer_str = ''.join(_buffer)
-        bengali = _convert_to_bengali(buffer_str)
-        
-        if bengali != buffer_str:
-            for _ in range(len(buffer_str)):
-                keyboard.send('backspace')
-            keyboard.write(bengali)
-            _buffer = []
-        elif len(buffer_str) > 2:
-            if buffer_str in COMMON_WORDS:
-                for _ in range(len(buffer_str)):
-                    keyboard.send('backspace')
-                keyboard.write(COMMON_WORDS[buffer_str])
-                _buffer = []
+# --- Mode + help ----------------------------------------------------------
 
-def _on_ctrl_space():
+def _toggle_mode(icon=None, item=None):
     global bengali_mode
-    bengali_mode = not bengali_mode
+    with _lock:
+        bengali_mode = not bengali_mode
+        _reset_token()
     _update_tray_icon()
 
-def _on_f1():
-    _show_help()
+
+def _show_help(icon=None, item=None):
+    message = (
+        'Amar Bangla Keyboard v' + VERSION + '\n'
+        'Toggle Bengali/English: Ctrl+Space\n'
+        'Help: F1\n'
+        'Example: k -> ক, K -> খ, ka -> কা, k;t -> ক্ত\n'
+        'Support: ' + SUPPORT_EMAIL
+    )
+    if _tray_icon is not None:
+        try:
+            _tray_icon.notify(message, 'Amar Bangla Keyboard')
+            return
+        except Exception:
+            pass
+    print(message)
+
+
+def _quit(icon=None, item=None):
+    _save_config()
+    if _tray_icon is not None:
+        _tray_icon.stop()
+
+
+# --- Conversion / rendering ----------------------------------------------
+
+def _reset_token():
+    global _buffer, _rendered_len
+    _buffer = []
+    _rendered_len = 0
+
+
+def _render(extra=0):
+    """Rewrite the on-screen token for the current buffer.
+
+    ``extra`` accounts for characters the OS already inserted that we did not
+    count yet: +1 for a freshly typed letter, -1 for a backspace the OS already
+    applied.
+    """
+    global _rendered_len, _injecting
+    out = convert_word(''.join(_buffer))
+    delete = _rendered_len + extra
+
+    _injecting = True
+    try:
+        for _ in range(max(0, delete)):
+            keyboard.send('backspace')
+        if out:
+            keyboard.write(out)
+    finally:
+        _injecting = False
+
+    _rendered_len = len(out)
+
+
+def _modifiers_held():
+    for mod in ('ctrl', 'alt', 'windows'):
+        try:
+            if keyboard.is_pressed(mod):
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def _on_key_event(event):
+    if event.event_type != 'down' or not bengali_mode or _injecting:
+        return
+
+    name = event.name
+
+    if name in _MODIFIER_NAMES:
+        return
+
+    # Never touch modifier combos: Ctrl+C, Alt+Tab, ... must keep working.
+    if _modifiers_held():
+        return
+
+    if name == 'backspace':
+        _handle_backspace()
+        return
+
+    if len(name) == 1 and name in TOKEN_CHARS:
+        with _lock:
+            _buffer.append(name)
+            _render(extra=1)
+    else:
+        # Space, Enter, arrows, punctuation, ... commit the current token.
+        with _lock:
+            _reset_token()
+
+
+def _handle_backspace():
+    global _buffer
+    if not _buffer:
+        return  # nothing of ours on screen; let the OS backspace through
+    with _lock:
+        _buffer.pop()
+        _render(extra=-1)
+
+
+# --- Entry point ----------------------------------------------------------
+
+def _acquire_single_instance():
+    """Return True if this is the only running instance.
+
+    Two copies would each install a global hook and double-convert every word.
+    """
+    try:
+        kernel32 = ctypes.windll.kernel32
+        kernel32.CreateMutexW(None, False, MUTEX_NAME)
+        ERROR_ALREADY_EXISTS = 183
+        return kernel32.GetLastError() != ERROR_ALREADY_EXISTS
+    except Exception:
+        return True
+
 
 def main():
-    global _tray_icon, bengali_mode
-    
+    global _tray_icon
+
+    if not _acquire_single_instance():
+        _show_help()
+        return
+
     _load_config()
-    
+
     _tray_icon = Icon(
         'Amar Bangla Keyboard',
-        _create_image('EN', (128, 128, 128)),
+        _tray_image(),
+        'Amar Bangla Keyboard',
         menu=_create_menu(),
     )
-    
-    keyboard.add_hotkey('ctrl+space', _on_ctrl_space)
-    keyboard.add_hotkey('f1', _on_f1)
+
+    keyboard.add_hotkey('ctrl+space', _toggle_mode)
+    keyboard.add_hotkey('f1', _show_help)
     keyboard.on_press(_on_key_event)
-    
-    title = "Amar Bangla Keyboard v" + VERSION
-    print(title + " started!")
-    print("Ctrl+Space: Toggle Bengali/English")
 
-    _tray_icon.run_detached()
+    print('Amar Bangla Keyboard v' + VERSION + ' started!')
+    print('Ctrl+Space: toggle Bengali/English')
 
-if __name__ == "__main__":
+    try:
+        _tray_icon.run()
+    except Exception:
+        # Fall back to a detached icon, keeping the process alive while the
+        # global keyboard listener thread is running.
+        _tray_icon.run_detached()
+        keyboard.wait()
+
+
+if __name__ == '__main__':
     main()

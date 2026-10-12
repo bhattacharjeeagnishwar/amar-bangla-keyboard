@@ -1,3 +1,4 @@
 keyboard>=0.13.5
-pypiwin32>=223
+pystray>=0.19
+Pillow>=9.0
 pyinstaller>=5.0
